@@ -1,0 +1,11 @@
+ad.doubleclick.net
+googlesyndication.com
+ads.youtube.com
+tracking.example.com
+googleadservices.com
+adsafeprotected.com
+securepubads.g.doubleclick.net
+googletagmanager.com
+ads.pubmatic.com
+ad.doubleclick.net
+track.adform.net
