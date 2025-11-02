@@ -18,9 +18,24 @@ A lightweight Python-based local DNS filter that blocks listed domains and forwa
 ---
 ## Overview
 
-A simple dns server and domain blocker written in python. This project demonstrates how DNS queries can be intercepted and filtered based on a blocklist.
-Currently, the script successfully detects and blocks queries made using the `dig` command (for any DNS record type).  
-It serves as a proof-of-concept for local DNS-based blocking.
+A simple DNS server and domain blocker written in Python.
+This project is a proof-of-concept that **intercepts DNS queries for advertising/tracking hosts** and returns sinkhole addresses (e.g. `0.0.0.0` / `::`) so the client never connects to ad servers.
+
+### Why this works
+
+* When a web page contains an ad link or embedded tracker, the browser first resolves the ad’s **hostname** (e.g. `ad.doubleclick.net`) via DNS.
+* If the DNS response points to a sinkhole address rather than the real IP, the browser’s subsequent TCP/TLS request fails and the ad cannot load.
+
+### High-level packet flow (what the PoC does)
+
+1. **Browser (or client)** requests a URL that contains an ad link → that URL contains a hostname.
+2. The client issues a **DNS query** (UDP/TCP, usually port 53) for the hostname. (The code works assuming UDP packets are sent)
+3. The Python server **parses the DNS packet**, extracts the domain name from the question section.
+4. The domain is checked against `blocklist.txt`.
+
+   * If **matched** → the server responds with a **sinkhole** IP (`0.0.0.0` for A, `::` for AAAA).
+   * If **not matched** → the server forwards the query to the upstream resolver (e.g. Cloudflare) and relays the real response back.
+5. The browser receives the sinkholed IP and cannot load the ad resource.
 
 ---
 ## Features
@@ -96,6 +111,7 @@ dig @127.0.0.1 ads.youtube.com
 ```
 
 Working:
+
 <img width="1918" height="982" alt="image" src="https://github.com/user-attachments/assets/2a74e19a-a4ab-446c-a122-6963f2dcc96c" />
 
 ---
